@@ -389,7 +389,7 @@ rarefaction = function(x, method, effort=NULL, coords=NULL, latlong=NULL,
         x = x[x > 0] 
         S = length(x)
         if (dens_ratio == 1 & all(effort %% 1 == 0)) {
-            # dens_ratio is 1 or effort is only integers
+            # dens_ratio is 1 & effort is only integers
             ldiv = lchoose(n, effort)
         } else {
             effort = effort[effort / dens_ratio <= n]
@@ -400,8 +400,8 @@ rarefaction = function(x, method, effort=NULL, coords=NULL, latlong=NULL,
         S_ext = NULL
         for (i in seq_along(effort)) {
             if (effort[i] <= n) {
-                if (dens_ratio == 1 & effort[i] %% 1 == 0) {
-                    # if dens_ratio is 1 or effort is an integer
+                if (dens_ratio == 1 & all(effort %% 1 == 0)) {
+                    # if dens_ratio is 1 & effort is only integers
                     p[i, ] = ifelse(n - x < effort[i], 0, 
                                     exp(lchoose(n - x, effort[i]) - ldiv[i]))
                 } else {
@@ -736,7 +736,8 @@ get_sample_curves = function(mob_in, group_levels, group_data, approved_tests){
             comm_level = mob_in$comm[as.character(group_data) == level, ]
             nplots = nrow(comm_level)
             level_dens = sum(comm_level) / nplots
-            samp_effort = 1:nplots * level_dens
+            # round sampling effort to avoid floating point precision problems
+            samp_effort = round(1:nplots * level_dens, 5) 
             impl_S = rarefaction(comm_level, 'indiv', samp_effort)
             sample_rare_level = data.frame(cbind(rep(level, length(impl_S)), 
                                                  seq(length(impl_S)), impl_S))
